@@ -40,6 +40,11 @@ func (repo *UserRepository) GetByEmail(email string) (*pb.User, error) {
 
 func (repo *UserRepository) GetAll() ([]*pb.User, error) {
 	users := make([]*pb.User, 0)
-	err := repo.Db.Find(&users).Error
-	return users, err
+	if err := repo.Db.Where("name = ?","test").Find(&users).Error; err != nil {
+		return users, err
+	}
+
+	return users,nil
+
 }
+

@@ -42,8 +42,8 @@ func (srv *UserService) Create(ctx context.Context, req *pb.User, res *pb.Respon
 	if err := srv.Repo.Create(req); err != nil {
 		return err
 	}
+	res.User = req
 	return nil
 
 }
 
-// docker run -d -p 9003:3306 --name rn3 -e MYSQL_MASTER_HOST=rn1 -e MYSQL_MASTER_PORT=3306 -e MYSQL_ROOT_PASSWORD=abc123456 -e MYSQL_REPLICATION_USER=backup -e MYSQL_REPLICATION_PASSWORD=backup123 -v rnv3:/var/lib/mysql --net=swarm_mysql rep
