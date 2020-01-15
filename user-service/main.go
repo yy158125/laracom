@@ -7,6 +7,7 @@ import (
 	"github.com/yy158125/laracom/user-service/handler"
 	pb "github.com/yy158125/laracom/user-service/proto/user"
 	"github.com/yy158125/laracom/user-service/repo"
+	"github.com/yy158125/laracom/user-service/service"
 )
 
 func main()  {
@@ -17,13 +18,7 @@ func main()  {
 
 	repo := &repo.UserRepository{Db:db}
 
-	users,err := repo.GetAll()
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(users)
+	token := &service.TokenService{}
 
 
 	//Micro 创建微服务
@@ -34,7 +29,7 @@ func main()  {
 
 	srv.Init()
 
-	pb.RegisterUserServiceHandler(srv.Server(),&handler.UserService{Repo:repo})
+	pb.RegisterUserServiceHandler(srv.Server(),&handler.UserService{repo,token})
 
 	if err := srv.Run(); err != nil{
 		fmt.Println(err)

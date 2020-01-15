@@ -2,13 +2,18 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"github.com/yy158125/laracom/user-service/pkg/auth"
 	pb "github.com/yy158125/laracom/user-service/proto/user"
 	"github.com/yy158125/laracom/user-service/repo"
+	"github.com/yy158125/laracom/user-service/service"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 )
 
 type UserService struct {
 	Repo repo.Repository
+	Token service.Authable
 }
 
 // Create(context.Context, *User, *Response) error
@@ -45,5 +50,40 @@ func (srv *UserService) Create(ctx context.Context, req *pb.User, res *pb.Respon
 	res.User = req
 	return nil
 
+}
+
+func (srv *UserService) Auth(ctx context.Context,req *pb.User, res *pb.Token) error  {
+	log.Println("Logging in with:", req.Email, req.Password)
+	// 获取用户信息
+	user, err := srv.Repo.GetByEmail(req.Email)
+	if err != nil {
+		return err
+	}
+	log.Println(user)
+
+	if err := auth.Compare(user.Password,req.Password); err != nil{
+		return err
+	}
+	// token
+	token, err := srv.Token.Sign(user)
+	if err != nil {
+		return err
+	}
+	res.Token = token
+	return nil
+}
+
+func (srv *UserService) ValidateToken(ctx context.Context, req *pb.Token, res *pb.Token) error {
+	claims, err := srv.Token.Parse(req.Token)
+	if err != nil {
+		return err
+	}
+
+	if claims.User.Id == "" {
+		return errors.New("无效用户")
+	}
+	res.Valid = true
+
+	return nil
 }
 
